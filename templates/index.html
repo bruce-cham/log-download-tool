@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux日志自动下载工具 v3</title>
+	<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        * {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Consolas', monospace;
+        }
+		
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #f0f2f6;
+            color: #1a1a2e;
+        }		
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 13px;
+            opacity: 0.85;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 15px 20px;
+            background: #f8f9fc;
+            border-bottom: 1px solid #e9ecef;
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #6c757d;
+        }
+
+        .filter-group input, .filter-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .filter-group input:focus, .filter-group select:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 2px rgba(42,82,152,0.1);
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background: #2a5298;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1e3c72;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-outline {
+            background: white;
+            border: 1px solid #ddd;
+            color: #495057;
+        }
+
+        .btn-outline:hover {
+            background: #f8f9fa;
+        }
+
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            max-height: 450px;
+            overflow-y: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .data-table th {
+            background: #f8f9fc;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 1px solid #e9ecef;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .data-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fc;
+            cursor: pointer;
+        }
+
+        .data-table tr.selected {
+            background: #e8f0fe;
+        }
+
+        .checkbox-col {
+            width: 35px;
+            text-align: center;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .config-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .config-group label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #6c757d;
+        }
+
+        .config-group input, .config-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .log-panel {
+            background: #1e1e2e;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .log-header {
+            padding: 10px 15px;
+            background: #181825;
+            color: #cdd6f4;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .log-content {
+            height: 250px;
+            overflow-y: auto;
+            font-family: 'Courier New', 'Monaco', monospace;
+            font-size: 12px;
+            padding: 12px;
+            background: #0f0f14;
+        }
+
+        .log-line {
+            color: #6c7086;
+            margin: 2px 0;
+            font-family: monospace;
+            font-size: 11px;
+        }
+
+        .log-line.info {
+            color: #89b4fa;
+        }
+
+        .log-line.success {
+            color: #a6e3a1;
+        }
+
+        .log-line.error {
+            color: #f38ba8;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #313244;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #89b4fa;
+            transition: width 0.3s;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+		
+		.results-table td {
+			padding: 8px 12px;
+			vertical-align: middle;
+			font-family: inherit;
+			font-size: 12px;
+			word-break: break-word;
+			white-space: pre-wrap;
+			text-align: left;
+		}
+		.results-table td code {
+			font-family: 'Consolas', monospace;
+			font-size: 11px;
+		}
+		.results-table .badge {
+			display: inline-block;
+			padding: 2px 8px;
+			border-radius: 20px;
+			font-size: 12px;
+			font-weight: 500;
+		}
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .selected-count {
+            background: #2a5298;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+
+        /* 预览弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            overflow: auto;
+        }
+
+        .modal-content {
+            background-color: #ffffff;
+            margin: 2% auto;
+            width: 90%;
+            max-width: 1300px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+            position: relative;
+        }
+
+        .modal-header {
+            padding: 15px 20px;
+            background: #f8f9fc;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e9ecef;
+            flex-shrink: 0;
+        }
+
+        .modal-header h3 {
+            color: #1a1a2e;
+            font-size: 16px;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .modal-header .file-info {
+            color: #6c757d;
+            font-size: 12px;
+            font-family: monospace;
+            margin-top: 5px;
+            word-break: break-all;
+        }
+
+        .close-btn {
+            color: #999;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: #f38ba8;
+        }
+
+        .modal-toolbar {
+            padding: 12px 20px;
+            background: #f8f9fc;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #e9ecef;
+            flex-shrink: 0;
+        }
+
+        .modal-toolbar input {
+            padding: 6px 12px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            color: #1a1a2e;
+            font-size: 13px;
+            width: 200px;
+            font-family: inherit;
+        }
+
+        .modal-toolbar input:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 2px rgba(42,82,152,0.1);
+        }
+
+        .modal-toolbar button {
+            padding: 6px 12px;
+            background: #e9ecef;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            color: #495057;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .modal-toolbar button:hover {
+            background: #dee2e6;
+            border-color: #ccc;
+        }
+
+        .modal-body {
+            flex: 1;
+            overflow: auto;
+            padding: 0;
+            background: #ffffff;
+        }
+
+        /* 日志内容区域 - 与主页日志风格一致 */
+        .log-line-preview {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border-bottom: 1px solid #f1f3f5;
+            padding: 4px 0;
+            margin: 0;
+        }
+
+        .log-line-preview:hover {
+            background: #f8f9fc;
+        }
+
+        .line-number {
+            display: inline-block;
+            width: 60px;
+            color: #adb5bd;
+            user-select: none;
+            text-align: right;
+            margin-right: 15px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        /* 关键字高亮 */
+        .highlight {
+            background-color: #ffeb3b;
+            color: #1a1a2e;
+            padding: 0 2px;
+            border-radius: 3px;
+            font-weight: 500;
+        }
+
+        /* 日志级别高亮 */
+        .log-error-preview {
+            color: #dc3545;
+            font-weight: bold;
+            background-color: #ffe5e5;
+            padding: 0 2px;
+            border-radius: 3px;
+        }
+
+        .log-warn-preview {
+            color: #fd7e14;
+            font-weight: bold;
+            background-color: #fff3e0;
+            padding: 0 2px;
+            border-radius: 3px;
+        }
+
+        .log-info-preview {
+            color: #0d6efd;
+            font-weight: bold;
+            background-color: #e5f0ff;
+            padding: 0 2px;
+            border-radius: 3px;
+        }
+
+        .load-more-btn {
+            text-align: center;
+            padding: 12px;
+            background: #f8f9fc;
+            cursor: pointer;
+            color: #2a5298;
+            border-top: 1px solid #e9ecef;
+            font-size: 13px;
+            font-weight: 500;
+            flex-shrink: 0;
+            font-family: inherit;
+        }
+
+        .load-more-btn:hover {
+            background: #e9ecef;
+        }
+
+        .file-selector {
+            padding: 6px 12px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            color: #1a1a2e;
+            font-size: 13px;
+            margin-right: 10px;
+            font-family: inherit;
+        }
+
+        .file-selector:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 2px rgba(42,82,152,0.1);
+        }
+        
+        /* 搜索结果显示 */
+        #searchResultInfo {
+            font-size: 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 Linux日志自动下载工具 v3</h1>
+        <p>支持跳板机 | 多线程并发 | 关键字过滤 | DuckDB集成 | 在线日志预览</p>
+		<div style="margin-top: 10px;">
+			<a href="/vcomm-instance" target="_blank" rel="noopener noreferrer" style="color: white; text-decoration: none; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px;">📊 查看 VCOMM 实例</a>
+		</div>
+    </div>
+
+    <div class="container">
+        <!-- 筛选栏 -->
+        <div class="card">
+            <div class="card-header">
+                <span>🔍 服务器筛选</span>
+                <span class="selected-count" id="selectedCount">0</span>
+            </div>
+            <div class="card-body">
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label>项目</label>
+                        <select id="filterProject" onchange="debouncedLoadServers()">
+                            <option value="">全部</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>环境</label>
+                        <select id="filterEnv" onchange="debouncedLoadServers()">
+                            <option value="">全部</option>
+                        </select>
+                    </div>
+					<div class="filter-group">
+						<label>应用</label>
+						<select id="filterApp" onchange="debouncedLoadServers()">
+							<option value="">全部</option>
+						</select>
+					</div>
+                    <div class="filter-group">
+                        <label>组件</label>
+                        <input type="text" id="filterComponent" placeholder="模糊搜索" oninput="debouncedLoadServers()">
+                    </div>
+                    <div class="filter-group">
+                        <label>POD</label>
+                        <input type="text" id="filterPod" placeholder="模糊搜索" oninput="debouncedLoadServers()">
+                    </div>
+					<div class="filter-group">
+						<label>实例类型</label>
+						<select id="filterInstanceType" onchange="debouncedLoadServers()">
+							<option value="">全部</option>
+						</select>
+					</div>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary btn-sm" onclick="clearFilters()">清除筛选</button>
+                    <button class="btn btn-outline btn-sm" onclick="selectAll()">全选</button>
+                    <button class="btn btn-outline btn-sm" onclick="selectNone()">取消全选</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 服务器列表 -->
+        <div class="card">
+            <div class="card-header">
+                <span>🖥️ 服务器列表</span>
+                <span id="serverCount" style="font-size:12px;color:#6c757d;">加载中...</span>
+            </div>
+            <div class="card-body" style="padding:0;">
+                <div class="table-wrapper">
+                    <table class="data-table" id="serverTable">
+                        <thead id="tableHeader">
+                            <tr><th class="checkbox-col"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()"></th><th>加载中...</th></tr>
+                        </thead>
+                        <tbody id="serverTableBody">
+                            <tr><td colspan="10" class="loading">加载中...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 查询配置 -->
+        <div class="card">
+            <div class="card-header">
+                <span>⚙️ 日志查询配置</span>
+            </div>
+            <div class="card-body">
+                <div class="config-grid">
+                    <div class="config-group">
+                        <label>日志目录（逗号分隔）</label>
+                        <input type="text" id="directories" value="/onstarlog,/var/log">
+                    </div>
+                    <div class="config-group">
+                        <label>最近N天</label>
+                        <input type="number" id="days" value="3" style="width:100px">
+                    </div>
+                    <div class="config-group">
+                        <label>关键字（逗号分隔）</label>
+                        <input type="text" id="keywords" placeholder="error,exception">
+                    </div>
+                    <div class="config-group">
+                        <label>匹配模式</label>
+                        <select id="kwMode" style="width:100px"><option>OR</option><option>AND</option></select>
+                    </div>
+                    <div class="config-group">
+                        <label>并发线程数</label>
+                        <input type="number" id="threads" value="5" style="width:80px">
+                    </div>
+                    <div class="config-group">
+                        <label>失败重试次数</label>
+                        <input type="number" id="retries" value="3" style="width:80px">
+                    </div>
+                    <div class="config-group">
+                        <label>保存目录</label>
+                        <input type="text" id="saveDir" value="./downloaded_logs">
+                    </div>
+					<div class="config-group">
+						<label>截取方式</label>
+						<select id="truncateMode" onchange="toggleTruncateInputs()">
+							<option value="none">不截取</option>
+							<option value="line">按行号范围</option>
+							<option value="string">按开始/结束字符串</option>
+						</select>
+					</div>
+					<div id="lineRangeDiv" style="display:none;" class="config-group" style="flex-direction: row; gap: 10px;">
+						<label>起始行号</label>
+						<input type="number" id="startLine" value="" style="width:80px">
+						<label>结束行号</label>
+						<input type="number" id="endLine" value="" style="width:80px">
+					</div>
+					<div id="stringRangeDiv" style="display:none;" class="config-group" style="flex-direction: row; gap: 10px;">
+						<label>开始字符串</label>
+						<input type="text" id="startString" placeholder="例如 ERROR" style="width:150px">
+						<label>结束字符串（可选）</label>
+						<input type="text" id="endString" placeholder="留空则到文件末尾" style="width:150px">
+					</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 登录凭证配置 -->
+        <div class="card">
+            <div class="card-header">
+                <span>🔐 登录凭证配置</span>
+                <span style="font-size:11px;color:#6c757d;">优先使用下方配置，为空则使用数据库中的默认凭证</span>
+            </div>
+            <div class="card-body">
+                <div class="config-grid">
+                    <div class="config-group">
+                        <label>SSH用户名</label>
+                        <input type="text" id="customUsername" placeholder="留空则使用数据库中的 App OS Username">
+                    </div>
+                    <div class="config-group">
+                        <label>SSH密码</label>
+                        <input type="password" id="customPassword" placeholder="留空则使用数据库中的 Weblogic Password">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 跳板机配置 -->
+        <div class="card">
+            <div class="card-header">
+                <span>🔗 跳板机配置（可选）</span>
+            </div>
+            <div class="card-body">
+                <div class="config-grid">
+                    <div class="config-group">
+                        <label>跳板机IP</label>
+                        <input type="text" id="bastionHost" placeholder="留空则直连">
+                    </div>
+                    <div class="config-group">
+                        <label>用户名</label>
+                        <input type="text" id="bastionUser">
+                    </div>
+                    <div class="config-group">
+                        <label>密码</label>
+                        <input type="password" id="bastionPwd">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- <!-- 操作按钮 --> -->
+        <!-- <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;"> -->
+            <!-- <button class="btn btn-success" onclick="startTask()">🚀 开始下载日志</button> -->
+            <!-- <button class="btn btn-secondary" onclick="saveConfig()">💾 保存配置</button> -->
+            <!-- <button class="btn btn-secondary" onclick="loadConfig()">📂 加载配置</button> -->
+			<!-- <!-- 新增两个检查按钮 --> -->
+			<!-- <button class="btn btn-primary" onclick="checkWeblogic()">🔍 检查WebLogic进程</button> -->
+			<!-- <button class="btn btn-primary" onclick="checkPidpy()">🐍 检查PID.py</button> -->
+        <!-- </div> -->
+		<div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+			<button class="btn btn-success" onclick="startTask()">🚀 开始下载日志</button>
+			<button class="btn btn-secondary" onclick="saveConfig()">💾 保存配置</button>
+			<button class="btn btn-secondary" onclick="loadConfig()">📂 加载配置</button>
+			<!-- 新增检查按钮 -->
+			<button class="btn btn-primary" onclick="checkWeblogic()">🔍 检查WebLogic进程</button>
+			<button class="btn btn-primary" onclick="checkPidpy()">🐍 检查PID.py</button>
+			<button class="btn btn-primary" onclick="checkVcommVersion()">📦 查询VCOMM版本</button>
+		</div>
+
+        <!-- 执行日志 -->
+        <div class="log-panel">
+            <div class="log-header">
+                <span>📝 执行日志</span>
+                <button class="btn btn-secondary btn-sm" onclick="clearLogs()" style="background:#313244;">清空</button>
+            </div>
+            <div class="log-content" id="logContent">
+                <div class="log-line">等待任务...</div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- 执行结果 -->
+        <div class="card">
+            <div class="card-header">
+                <span>📊 执行结果</span>
+            </div>
+            <div class="card-body" id="resultsArea" style="text-align: center; color: #6c757d;">
+                暂无结果
+            </div>
+        </div>
+    </div>
+	
+	    <!-- 日志预览弹窗 -->
+    <div id="previewModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h3 id="previewTitle">📄 日志预览</h3>
+                    <div class="file-info" id="fileInfo"></div>
+                </div>
+                <span class="close-btn" onclick="closePreviewModal()">&times;</span>
+            </div>
+            <div class="modal-toolbar" id="modalToolbar">
+                <div id="fileSelectorContainer" style="display: inline-block;"></div>
+                <input type="text" id="searchKeywordInput" placeholder="搜索关键字..." onkeypress="if(event.key==='Enter') searchInLocalFile()">
+                <button onclick="searchInLocalFile()">🔍 搜索</button>
+                <button onclick="clearLocalSearchHighlight()">清除高亮</button>
+                <button onclick="copyPreviewContent()">📋 复制内容</button>
+                <span id="searchResultInfo"></span>
+            </div>
+            <div class="modal-body" id="previewContent">
+                <div style="text-align:center; padding:40px;">请选择日志文件</div>
+            </div>
+            <div id="loadMoreBtn" class="load-more-btn" style="display:none;" onclick="loadMoreLocalLog()">
+                📥 加载更多...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedServers = new Set();
+        let allServers = [];
+
+        // 预览相关变量
+        let currentTarPath = null;
+        let currentLocalFilePath = null;
+        let currentLocalOffset = 0;
+        let currentLocalTotalLines = 0;
+        let currentLocalKeyword = '';
+        let currentExtractedFiles = [];
+		
+		async function loadFilterOptions() {
+			const resp = await fetch('/api/filter_options');
+			const options = await resp.json();
+			
+			const projectSelect = document.getElementById('filterProject');
+			const envSelect = document.getElementById('filterEnv');
+			const appSelect = document.getElementById('filterApp');
+			const instanceTypeSelect = document.getElementById('filterInstanceType');
+			
+			projectSelect.innerHTML = '<option value="">全部</option>' + options.projects.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
+			envSelect.innerHTML = '<option value="">全部</option>' + options.envs.map(e => `<option value="${escapeHtml(e)}">${escapeHtml(e)}</option>`).join('');
+			appSelect.innerHTML = '<option value="">全部</option>' + options.applications.map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join('');
+			instanceTypeSelect.innerHTML = '<option value="">全部</option>' + options.instanceTypes.map(i => `<option value="${escapeHtml(i)}">${escapeHtml(i)}</option>`).join('');
+		}
+		
+		function debounce(func, delay) {
+			let timer;
+			return function(...args) {
+				clearTimeout(timer);
+				timer = setTimeout(() => func.apply(this, args), delay);
+			};
+		}
+		
+		const debouncedLoadServers = debounce(loadServers, 300);
+		
+        // 加载服务器列表
+        async function loadServers() {
+            const filters = {
+                project: document.getElementById('filterProject').value,
+                env: document.getElementById('filterEnv').value,
+                application: document.getElementById('filterApp').value,
+                component: document.getElementById('filterComponent').value,
+                pod: document.getElementById('filterPod').value,
+				instanceType: document.getElementById('filterInstanceType').value
+				
+            };
+            
+            const resp = await fetch('/api/servers?' + new URLSearchParams(filters));
+            const data = await resp.json();
+            allServers = data.servers;
+            
+            const tbody = document.getElementById('serverTableBody');
+            const thead = document.getElementById('tableHeader');
+            
+            if (allServers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="loading">暂无数据</td></tr>';
+                document.getElementById('serverCount').innerText = '0台服务器';
+                return;
+            }
+
+            // 动态生成表头
+			const displayColumns = ['Project', 'Env', 'Application', 'Component', 'IP', 'URL', 'POD', 'Instance Name', 'Weblogic Password', 'App OS Username'];
+            const headerHtml = '<th class="checkbox-col"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()"></th>' + 
+                displayColumns.map(col => `<th>${escapeHtml(col)}</th>`).join('');
+            thead.innerHTML = headerHtml;
+            
+            // 生成表格行
+			tbody.innerHTML = allServers.map(server => {
+				// 生成访问链接
+				let accessLink = '-';
+				const dnsName = server['IP'];
+				const httpPort = server['HTTP Port'];
+				if (dnsName && httpPort) {
+					const url = `http://${dnsName}:${httpPort}/console/login/LoginForm.jsp`;
+					accessLink = `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color:#2a5298; text-decoration:none;">🔗 Open</a>`;
+				} else if (dnsName) {
+					accessLink = '-';  // 无端口或无 DNS 名称时显示短横线
+				}
+				
+				return `
+				<tr onclick="toggleRow('${server.IP}')" class="${selectedServers.has(server.IP) ? 'selected' : ''}">
+					<td class="checkbox-col" onclick="event.stopPropagation()">
+						<input type="checkbox" data-ip="${server.IP}" ${selectedServers.has(server.IP) ? 'checked' : ''} onchange="toggleSelect('${server.IP}', this.checked)">
+					</td>
+					<td>${escapeHtml(server.Project || '-')}</td>
+					<td>${escapeHtml(server.Env || '-')}</td>
+					<td>${escapeHtml(server.Application || '-')}</td>
+					<td>${escapeHtml(server.Component || '-')}</td>
+					<td><code>${escapeHtml(server.IP || '-')}</code></td>
+					<td>${accessLink}</td>
+					<td>${escapeHtml(server.POD || '-')}</td>
+					<td>${escapeHtml(server['Instance Name'] || '-')}</td>
+					<td>${escapeHtml(server['Weblogic Password'] || '-')}</td>
+					<td>${escapeHtml(server['App OS Username'] || '-')}</td>
+				</tr>
+				`;
+			}).join('');
+            
+            document.getElementById('serverCount').innerText = `${allServers.length}台服务器`;
+            document.getElementById('selectedCount').innerText = selectedServers.size;
+            
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = selectedServers.size === allServers.length && allServers.length > 0;
+            }
+        }
+				
+        function toggleRow(ip) {
+            const cb = document.querySelector(`input[data-ip="${ip}"]`);
+            if (cb) {
+                cb.checked = !cb.checked;
+                toggleSelect(ip, cb.checked);
+            }
+        }
+
+        function toggleSelect(ip, checked) {
+            if (checked) {
+                selectedServers.add(ip);
+            } else {
+                selectedServers.delete(ip);
+            }
+            document.getElementById('selectedCount').innerText = selectedServers.size;
+            
+            document.querySelectorAll(`tr`).forEach(tr => {
+                if (tr.innerHTML.includes(ip)) {
+                    if (checked) tr.classList.add('selected');
+                    else tr.classList.remove('selected');
+                }
+            });
+            
+            const selectAll = document.getElementById('selectAllCheckbox');
+            if (selectAll) {
+                selectAll.checked = selectedServers.size === allServers.length && allServers.length > 0;
+            }
+        }
+
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAllCheckbox').checked;
+            allServers.forEach(s => {
+                if (selectAll && !selectedServers.has(s.IP)) {
+                    selectedServers.add(s.IP);
+                } else if (!selectAll && selectedServers.has(s.IP)) {
+                    selectedServers.delete(s.IP);
+                }
+            });
+            loadServers();
+        }
+
+        function selectAll() {
+            allServers.forEach(s => selectedServers.add(s.IP));
+            loadServers();
+        }
+
+        function selectNone() {
+            selectedServers.clear();
+            loadServers();
+        }
+
+        function clearFilters() {
+            document.getElementById('filterProject').value = '';
+            document.getElementById('filterEnv').value = '';
+            document.getElementById('filterApp').value = '';
+            document.getElementById('filterComponent').value = '';
+            document.getElementById('filterPod').value = '';
+			document.getElementById('filterInstanceType').value = '';   // 新增
+            debouncedLoadServers();
+        }
+
+        function appendLog(host, msg) {
+            const logDiv = document.getElementById('logContent');
+            const line = document.createElement('div');
+            line.className = 'log-line info';
+            const ts = new Date().toLocaleTimeString();
+            line.innerHTML = `<span style="color:#6c7086">[${ts}]</span> [${host}] ${escapeHtml(msg)}`;
+            logDiv.appendChild(line);
+            line.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+
+        function clearLogs() {
+            document.getElementById('logContent').innerHTML = '<div class="log-line">日志已清空</div>';
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+		
+		function toggleTruncateInputs() {
+			const mode = document.getElementById('truncateMode').value;
+			document.getElementById('lineRangeDiv').style.display = mode === 'line' ? 'flex' : 'none';
+			document.getElementById('stringRangeDiv').style.display = mode === 'string' ? 'flex' : 'none';
+		}
+
+        function escapeRegex(str) {
+            return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function formatSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+		// 通用远程命令检查函数（改为使用复选框选中的服务器）
+		async function runRemoteCheck(endpoint, buttonLabel) {
+			if (selectedServers.size === 0) {
+				alert('请至少选择一台服务器（可使用全选按钮）');
+				return;
+			}
+
+			// 使用复选框选中的服务器
+			const serversToCheck = allServers.filter(s => selectedServers.has(s.IP));
+			
+			const config = {
+				servers: serversToCheck,
+				custom_username: document.getElementById('customUsername').value,
+				custom_password: document.getElementById('customPassword').value,
+				bastion_host: document.getElementById('bastionHost').value,
+				bastion_user: document.getElementById('bastionUser').value,
+				bastion_pwd: document.getElementById('bastionPwd').value
+			};
+
+			// 显示执行中状态
+			document.getElementById('resultsArea').innerHTML = '<div class="loading">⏳ 正在检查，请稍候...</div>';
+			
+			const resp = await fetch(endpoint, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(config)
+			});
+			const data = await resp.json();
+			
+			if (data.results) {			
+				let html = `
+					<table class="results-table">
+						<thead>
+							<tr><th>IP</th><th>项目/环境/应用</th><th>组件</th><th>状态</th><th>输出</th><th>错误</th></tr>
+						</thead>
+						<tbody>
+				`;
+				data.results.forEach(r => {
+					const successBadge = r.success ? '<span class="badge badge-success">成功</span>' : '<span class="badge badge-failed">失败</span>';
+					html += `
+						<tr>
+							<td><code>${escapeHtml(r.host)}</code></td>
+							<td>${escapeHtml(r.project)} / ${escapeHtml(r.env)} / ${escapeHtml(r.app)}</td>
+							<td>${escapeHtml(r.component || '-')}</td>
+							<td>${successBadge}</td>
+							<td>${escapeHtml(r.stdout || '-')}</td>
+							<td>${escapeHtml(r.stderr || '-')}</td>
+						</tr>
+					`;
+				});
+				html += '</tbody></table>';
+				document.getElementById('resultsArea').innerHTML = html;
+			} else {
+				document.getElementById('resultsArea').innerHTML = `<div class="loading">检查失败: ${data.error || '未知错误'}</div>`;
+			}
+		}
+
+		// 检查WebLogic进程
+		function checkWeblogic() {
+			runRemoteCheck('/api/check_weblogic', 'WebLogic进程检查');
+		}
+
+		// 检查PID.py
+		function checkPidpy() {
+			runRemoteCheck('/api/check_pidpy', 'PID.py检查');
+		}
+		
+
+		// 查询 VCOMM 版本
+		async function checkVcommVersion() {
+			if (selectedServers.size === 0) {
+				alert('请至少选择一台服务器');
+				return;
+			}
+
+			const serversToCheck = allServers.filter(s => selectedServers.has(s.IP));
+			const config = {
+				servers: serversToCheck,
+				custom_username: document.getElementById('customUsername').value,
+				custom_password: document.getElementById('customPassword').value,
+				bastion_host: document.getElementById('bastionHost').value,
+				bastion_user: document.getElementById('bastionUser').value,
+				bastion_pwd: document.getElementById('bastionPwd').value
+			};
+
+			document.getElementById('resultsArea').innerHTML = '<div class="loading">⏳ 正在查询VCOMM版本，请稍候...</div>';
+
+			try {
+				const resp = await fetch('/api/check_vcomm_version', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(config)
+				});
+				const data = await resp.json();
+
+				if (data.results) {
+					let html = `
+						<table class="results-table">
+							<thead>
+								<tr><th>IP</th><th>项目/环境/应用</th><th>状态</th><th>时间</th><th>链接名</th><th>目标文件</th></tr>
+							</thead>
+							<tbody>
+					`;
+					data.results.forEach(r => {
+						const successBadge = r.success ? '<span class="badge badge-success">成功</span>' : '<span class="badge badge-failed">失败</span>';
+						let timeCol = '-', linkCol = '-', targetCol = '-';
+						if (r.success && r.stdout) {
+							const lines = r.stdout.split('\n').filter(line => line.trim());
+							if (lines.length > 0) {
+								const timeList = [], linkList = [], targetList = [];
+								lines.forEach(line => {
+									// 解析格式：时间(3字段)  链接名 -> 目标
+									const match = line.match(/^(\S+\s+\S+\s+\S+)\s+(\S+)\s+->\s+(.*)$/);
+									if (match) {
+										timeList.push(escapeHtml(match[1]));
+										linkList.push(escapeHtml(match[2]));
+										targetList.push(escapeHtml(match[3]));
+									} else {
+										// 如果无法解析，整行放入目标列作为提示
+										targetList.push(escapeHtml(line));
+									}
+								});
+								timeCol = timeList.join('<br>');
+								linkCol = linkList.join('<br>');
+								targetCol = targetList.join('<br>');
+							}
+						}
+						html += `
+							<tr>
+								<!-- <td><code>${escapeHtml(r.host)}</code></td> -->
+								<td><code>${escapeHtml(r.host)}</code></td>
+								<td>${escapeHtml(r.project)} / ${escapeHtml(r.env)} / ${escapeHtml(r.app)}</td>
+								<td>${successBadge}</td>
+								<td style="white-space:pre-wrap;">${timeCol}</td>
+								<td style="white-space:pre-wrap;">${linkCol}</td>
+								<td style="white-space:pre-wrap;">${targetCol}</td>
+							</tr>
+						`;
+					});
+					html += '</tbody></table>';
+					document.getElementById('resultsArea').innerHTML = html;
+				} else {
+					document.getElementById('resultsArea').innerHTML = `<div class="loading">查询失败: ${escapeHtml(data.error || '未知错误')}</div>`;
+				}
+			} catch (err) {
+				document.getElementById('resultsArea').innerHTML = `<div class="loading" style="color:#dc3545;">请求异常: ${escapeHtml(err.message)}</div>`;
+				appendLog('SYSTEM', `VCOMM版本查询异常: ${err.message}`);
+			}
+		}
+		
+        // 打开本地预览弹窗
+        async function openLocalPreview(tarPath) {
+            console.log("openLocalPreview called with:", tarPath);
+            
+            // 保持原始路径，不做替换
+            currentTarPath = tarPath;
+            currentLocalOffset = 0;
+            currentLocalKeyword = '';
+            
+            // 显示弹窗
+            const modal = document.getElementById('previewModal');
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'flex-start';
+            modal.style.justifyContent = 'center';
+            
+            // 滚动到顶部
+            modal.scrollTop = 0;
+            document.body.style.overflow = 'hidden'; // 禁止背景滚动
+            
+            document.getElementById('previewTitle').innerHTML = `📄 日志预览 - ${tarPath.split(/[/\\]/).pop()}`;
+            document.getElementById('fileInfo').innerHTML = tarPath;
+            document.getElementById('previewContent').innerHTML = '<div style="text-align:center; padding:40px;">加载中...</div>';
+            document.getElementById('fileSelectorContainer').innerHTML = '';
+            document.getElementById('searchKeywordInput').value = '';
+            document.getElementById('searchResultInfo').innerHTML = '';
+            
+            // 获取解压目录中的文件列表
+            try {
+                const resp = await fetch('/api/list_extracted_files', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tar_path: tarPath })
+                });
+                const result = await resp.json();
+                console.log("API response:", result);
+                
+                const container = document.getElementById('fileSelectorContainer');
+                if (result.success && result.files && result.files.length > 0) {
+                    currentExtractedFiles = result.files;
+                    let selectorHtml = '<select id="fileSelector" class="file-selector" onchange="onFileSelect()">';
+                    result.files.forEach(file => {
+                        selectorHtml += `<option value="${file.path.replace(/\\/g, '\\\\')}">${file.name} (${formatSize(file.size)})</option>`;
+                    });
+                    selectorHtml += '</select>';
+                    container.innerHTML = selectorHtml;
+                    
+                    // 预览第一个文件
+                    await loadLocalPreview(result.files[0].path);
+                } else {
+                    container.innerHTML = `<span style="color:#dc3545; font-size:11px;">错误: ${escapeHtml(result.error || '未找到日志文件')}</span>`;
+                    document.getElementById('previewContent').innerHTML = `<div style="text-align:center; padding:40px; color:#dc3545;">${escapeHtml(result.error || '未找到解压的日志文件')}</div>`;
+                }
+            } catch (err) {
+                console.error("API call failed:", err);
+                const container = document.getElementById('fileSelectorContainer');
+                container.innerHTML = `<span style="color:#dc3545; font-size:11px;">请求失败: ${err.message}</span>`;
+                document.getElementById('previewContent').innerHTML = `<div style="text-align:center; padding:40px; color:#dc3545;">请求失败: ${err.message}</div>`;
+            }
+        }
+		
+        // 文件选择变化时调用
+        async function onFileSelect() {
+            const selector = document.getElementById('fileSelector');
+            if (selector) {
+                currentLocalOffset = 0;
+                currentLocalKeyword = '';
+                document.getElementById('searchKeywordInput').value = '';
+                document.getElementById('searchResultInfo').innerHTML = '';
+                await loadLocalPreview(selector.value);
+            }
+        }
+
+        // 加载本地预览内容
+        async function loadLocalPreview(filepath) {
+            currentLocalFilePath = filepath;
+            const modalBody = document.getElementById('previewContent');
+            modalBody.innerHTML = '<div style="text-align:center; padding:40px; color:#6c757d;">加载中...</div>';
+            
+            const data = {
+                filepath: filepath,
+                offset: currentLocalOffset,
+                limit: 10000,
+                keyword: currentLocalKeyword
+            };
+            
+            try {
+                const resp = await fetch('/api/preview_local', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await resp.json();
+                
+                if (result.success) {
+                    currentLocalTotalLines = result.total_lines;
+                    
+                    let html = '<div style="padding: 0;">';
+                    const lines = result.content.split('\n');
+                    lines.forEach((line, idx) => {
+                        const lineNum = currentLocalOffset + idx + 1;
+                        let formattedLine = escapeHtml(line);
+                        
+                        // 先处理关键字高亮
+                        if (currentLocalKeyword) {
+                            const regex = new RegExp(`(${escapeRegex(currentLocalKeyword)})`, 'gi');
+                            formattedLine = formattedLine.replace(regex, '<span class="highlight">$1</span>');
+                        }
+                        
+                        // 处理日志级别高亮
+                        formattedLine = formattedLine
+                            .replace(/\b(ERROR|FATAL|EXCEPTION|CRITICAL)\b/gi, '<span class="log-error-preview">$1</span>')
+                            .replace(/\b(WARN|WARNING)\b/gi, '<span class="log-warn-preview">$1</span>')
+                            .replace(/\b(INFO)\b/gi, '<span class="log-info-preview">$1</span>');
+                        
+                        // 高亮时间戳
+                        formattedLine = formattedLine.replace(/(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})/g, '<span style="color:#6c757d;">$1</span>');
+                        
+                        if (formattedLine.trim() || line) {
+                            html += `<div class="log-line-preview">
+                                        <span class="line-number">${lineNum}</span>
+                                        <span>${formattedLine || '&nbsp;'}</span>
+                                     </div>`;
+                        }
+                    });
+                    html += '</div>';
+                    
+                    if (!html || html === '<div style="padding: 0;"></div>') {
+                        html = '<div style="text-align:center; padding:40px; color:#6c757d;">文件为空或没有匹配的内容</div>';
+                    }
+                    
+                    modalBody.innerHTML = html;
+                    
+                    const loadMoreBtn = document.getElementById('loadMoreBtn');
+                    if (result.has_more) {
+                        loadMoreBtn.style.display = 'block';
+                        loadMoreBtn.innerHTML = `📥 加载更多 (${currentLocalOffset + 2000}/${result.total_lines} 行)`;
+                    } else {
+                        loadMoreBtn.style.display = 'none';
+                    }
+                    
+                    // 滚动到顶部
+                    modalBody.scrollTop = 0;
+                    
+                    document.getElementById('fileInfo').innerHTML = result.filepath;
+                } else {
+                    modalBody.innerHTML = `<div style="text-align:center; padding:40px; color:#dc3545;">错误: ${escapeHtml(result.error)}</div>`;
+                }
+            } catch (err) {
+                modalBody.innerHTML = `<div style="text-align:center; padding:40px; color:#dc3545;">请求失败: ${err.message}</div>`;
+            }
+        }
+
+        // 加载更多本地日志
+        async function loadMoreLocalLog() {
+            currentLocalOffset += 10000;
+            await loadLocalPreview(currentLocalFilePath);
+        }
+
+        // 在本地文件中搜索
+        async function searchInLocalFile() {
+            const keyword = document.getElementById('searchKeywordInput').value.trim();
+            if (!keyword) {
+                alert('请输入搜索关键字');
+                return;
+            }
+            
+            currentLocalKeyword = keyword;
+            currentLocalOffset = 0;
+            await loadLocalPreview(currentLocalFilePath);
+            document.getElementById('searchResultInfo').innerHTML = `🔍 搜索: "${escapeHtml(keyword)}"`;
+        }
+
+        // 清除本地搜索高亮
+        function clearLocalSearchHighlight() {
+            currentLocalKeyword = '';
+            document.getElementById('searchKeywordInput').value = '';
+            document.getElementById('searchResultInfo').innerHTML = '';
+            currentLocalOffset = 0;
+            if (currentLocalFilePath) {
+                loadLocalPreview(currentLocalFilePath);
+            }
+        }
+
+        // 复制预览内容
+        function copyPreviewContent() {
+            const content = document.getElementById('previewContent').innerText;
+            navigator.clipboard.writeText(content);
+            alert('已复制到剪贴板');
+        }
+
+        // 关闭预览弹窗
+        function closePreviewModal() {
+            const modal = document.getElementById('previewModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = ''; // 恢复背景滚动
+            currentTarPath = null;
+            currentLocalFilePath = null;
+            currentLocalKeyword = '';
+            document.getElementById('fileSelectorContainer').innerHTML = '';
+        }
+
+        async function startTask() {
+            if (selectedServers.size === 0) {
+                alert('请至少选择一台服务器');
+                return;
+            }
+            
+            const selectedServerList = allServers.filter(s => selectedServers.has(s.IP));
+			
+			const truncateMode = document.getElementById('truncateMode').value;
+			let truncateConfig = null;
+			if (truncateMode === 'line') {
+				const startLine = parseInt(document.getElementById('startLine').value);
+				const endLine = parseInt(document.getElementById('endLine').value);
+				if (isNaN(startLine) || isNaN(endLine) || startLine < 1 || endLine < startLine) {
+					alert('请正确填写行号范围（起始行号 ≥1，结束行号 ≥ 起始行号）');
+					return;
+				}
+				truncateConfig = { mode: 'line', start_line: startLine, end_line: endLine };
+			} else if (truncateMode === 'string') {
+				const startStr = document.getElementById('startString').value.trim();
+				if (!startStr) {
+					alert('开始字符串不能为空');
+					return;
+				}
+				const endStr = document.getElementById('endString').value.trim();
+				truncateConfig = { mode: 'string', start_str: startStr, end_str: endStr };
+			}
+            
+            const config = {
+                servers: selectedServerList,
+                custom_username: document.getElementById('customUsername').value,
+                custom_password: document.getElementById('customPassword').value,
+                directories: document.getElementById('directories').value,
+                days: parseInt(document.getElementById('days').value),
+                keywords: document.getElementById('keywords').value,
+                kw_mode: document.getElementById('kwMode').value,
+                threads: parseInt(document.getElementById('threads').value),
+                retries: parseInt(document.getElementById('retries').value),
+                save_dir: document.getElementById('saveDir').value,
+                keep_remote: false,
+                bastion_host: document.getElementById('bastionHost').value,
+                bastion_user: document.getElementById('bastionUser').value,
+                bastion_pwd: document.getElementById('bastionPwd').value,
+				truncate_config: truncateConfig
+            };
+            
+            document.getElementById('logContent').innerHTML = '';
+            document.getElementById('resultsArea').innerHTML = '<div class="loading">任务执行中...</div>';
+            document.getElementById('progressFill').style.width = '0%';
+            
+            const resp = await fetch('/api/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            });
+            const data = await resp.json();
+            if (data.status === 'started') {
+                startStatusPolling();
+            }
+        }
+
+        let statusInterval = null;
+        function startStatusPolling() {
+            if (statusInterval) clearInterval(statusInterval);
+            statusInterval = setInterval(async () => {
+                const resp = await fetch('/api/status');
+                const status = await resp.json();
+                
+                const percent = status.total > 0 ? (status.progress / status.total * 100) : 0;
+                document.getElementById('progressFill').style.width = percent + '%';
+                
+                if (status.results && status.results.length > 0) {
+					let html = `
+						<table class="results-table">
+							<thead>
+								<tr><th>IP</th><th>项目/环境/应用</th><th>组件</th><th>状态</th><th>消息</th><th>下载</th><th>预览</th></tr>
+							</thead>
+							<tbody>
+					`;
+					status.results.forEach(r => {
+						const successBadge = r.success ? '<span class="badge badge-success">成功</span>' : '<span class="badge badge-failed">失败</span>';
+						html += `
+							<tr>
+								<td><code>${escapeHtml(r.host)}</code></td>
+								<td>${escapeHtml(r.project)} / ${escapeHtml(r.env)} / ${escapeHtml(r.app)}</td>
+								<td>${escapeHtml(r.component || '-')}</td>
+								<td>${successBadge}</td>
+								<td>${escapeHtml(r.message)}</td>
+								<td>${r.tar_local ? `<a href="/download/${encodeURIComponent(r.tar_local)}">📦 下载</a>` : '-'}</td>
+								<td>${r.success && r.tar_local ? `<button class="btn btn-sm btn-outline" onclick="openLocalPreview('${r.tar_local.replace(/\\/g, '/')}')">👁️ 预览</button>` : '-'}</td>
+							</tr>
+						`;
+					});
+					html += '</tbody></table>';
+                    document.getElementById('resultsArea').innerHTML = html;
+                }
+                
+                if (!status.running && status.results) {
+                    clearInterval(statusInterval);
+                    statusInterval = null;
+                }
+            }, 1000);
+        }
+
+        // 配置保存/加载
+        async function saveConfig() {
+            const config = {
+                custom_username: document.getElementById('customUsername').value,
+                custom_password: document.getElementById('customPassword').value,
+                directories: document.getElementById('directories').value,
+                days: document.getElementById('days').value,
+                keywords: document.getElementById('keywords').value,
+                kw_mode: document.getElementById('kwMode').value,
+                threads: document.getElementById('threads').value,
+                retries: document.getElementById('retries').value,
+                save_dir: document.getElementById('saveDir').value,
+                bastion_host: document.getElementById('bastionHost').value,
+                bastion_user: document.getElementById('bastionUser').value,
+                bastion_pwd: document.getElementById('bastionPwd').value,
+				truncate_mode: document.getElementById('truncateMode').value,
+				start_line: document.getElementById('startLine').value,
+				end_line: document.getElementById('endLine').value,
+				start_string: document.getElementById('startString').value,
+				end_string: document.getElementById('endString').value
+            };
+            await fetch('/api/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            });
+            alert('配置已保存');
+        }
+
+        async function loadConfig() {
+            const resp = await fetch('/api/config');
+            const cfg = await resp.json();
+            document.getElementById('customUsername').value = cfg.custom_username || '';
+            document.getElementById('customPassword').value = cfg.custom_password || '';
+            document.getElementById('directories').value = cfg.directories || '/onstarlog,/var/log';
+            document.getElementById('days').value = cfg.days || 3;
+            document.getElementById('keywords').value = cfg.keywords || '';
+            document.getElementById('kwMode').value = cfg.kw_mode || 'OR';
+            document.getElementById('threads').value = cfg.threads || 5;
+            document.getElementById('retries').value = cfg.retries || 3;
+            document.getElementById('saveDir').value = cfg.save_dir || './downloaded_logs';
+            document.getElementById('bastionHost').value = cfg.bastion_host || '';
+            document.getElementById('bastionUser').value = cfg.bastion_user || '';
+            document.getElementById('bastionPwd').value = cfg.bastion_pwd || '';
+			document.getElementById('truncateMode').value = cfg.truncate_mode || 'none';
+			document.getElementById('startLine').value = cfg.start_line || '';
+			document.getElementById('endLine').value = cfg.end_line || '';
+			document.getElementById('startString').value = cfg.start_string || '';
+			document.getElementById('endString').value = cfg.end_string || '';
+			toggleTruncateInputs();
+        }
+
+        // SSE 日志流
+        function connectLogStream() {
+            const evtSource = new EventSource('/api/logstream');
+            evtSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                appendLog(data.host, data.message);
+            };
+        }
+
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('previewModal');
+            if (event.target === modal) {
+                closePreviewModal();
+            }
+        }
+
+        // 初始化
+        loadFilterOptions();
+        loadServers();
+        loadConfig();
+        connectLogStream();
+    </script>
+</body>
+</html>
