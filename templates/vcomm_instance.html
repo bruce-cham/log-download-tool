@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VCOMM 实例查询</title>
+    <style>
+        <!-- * { -->
+            <!-- margin: 0; -->
+            <!-- padding: 0; -->
+            <!-- box-sizing: border-box; -->
+        <!-- } -->
+
+        <!-- <!-- body { --> -->
+            <!-- <!-- font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; --> -->
+            <!-- <!-- background: #f0f2f6; --> -->
+            <!-- <!-- color: #1a1a2e; --> -->
+        <!-- <!-- } --> -->
+		<!-- body { -->
+			<!-- font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; -->
+			<!-- background: #f0f2f6; -->
+			<!-- color: #1a1a2e; -->
+		<!-- } -->
+
+        <!-- .header { -->
+            <!-- background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); -->
+            <!-- color: white; -->
+            <!-- padding: 20px 30px; -->
+            <!-- box-shadow: 0 2px 8px rgba(0,0,0,0.1); -->
+        <!-- } -->
+
+        <!-- .header h1 { -->
+            <!-- font-size: 24px; -->
+            <!-- margin-bottom: 5px; -->
+        <!-- } -->
+
+        <!-- .header p { -->
+            <!-- font-size: 13px; -->
+            <!-- opacity: 0.85; -->
+        <!-- } -->
+
+        <!-- .nav-bar { -->
+            <!-- background: #fff; -->
+            <!-- padding: 10px 30px; -->
+            <!-- border-bottom: 1px solid #e9ecef; -->
+            <!-- margin-bottom: 20px; -->
+        <!-- } -->
+
+        <!-- .nav-bar a { -->
+            <!-- color: #2a5298; -->
+            <!-- text-decoration: none; -->
+            <!-- margin-right: 20px; -->
+            <!-- font-size: 14px; -->
+            <!-- font-weight: 500; -->
+        <!-- } -->
+
+        <!-- .nav-bar a:hover { -->
+            <!-- text-decoration: underline; -->
+        <!-- } -->
+
+        <!-- .container { -->
+            <!-- max-width: 1600px; -->
+            <!-- margin: 0 auto; -->
+            <!-- padding: 0 30px; -->
+        <!-- } -->
+
+        <!-- .card { -->
+            <!-- background: white; -->
+            <!-- border-radius: 12px; -->
+            <!-- margin-bottom: 20px; -->
+            <!-- box-shadow: 0 1px 3px rgba(0,0,0,0.08); -->
+            <!-- overflow: hidden; -->
+        <!-- } -->
+
+        <!-- <!-- .card-header { --> -->
+            <!-- <!-- padding: 15px 20px; --> -->
+            <!-- <!-- background: #f8f9fc; --> -->
+            <!-- <!-- border-bottom: 1px solid #e9ecef; --> -->
+            <!-- <!-- font-weight: 600; --> -->
+            <!-- <!-- font-size: 16px; --> -->
+            <!-- <!-- display: flex; --> -->
+            <!-- <!-- justify-content: space-between; --> -->
+            <!-- <!-- align-items: center; --> -->
+        <!-- <!-- } --> -->
+		<!-- .card-header { -->
+			<!-- padding: 15px 20px; -->
+			<!-- background: #f8f9fc; -->
+			<!-- border-bottom: 1px solid #e9ecef; -->
+			<!-- font-weight: 600; -->
+			<!-- font-size: 16px; -->
+			<!-- font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; -->
+			<!-- display: flex; -->
+			<!-- justify-content: space-between; -->
+			<!-- align-items: center; -->
+		<!-- } -->
+
+        <!-- .card-body { -->
+            <!-- padding: 20px; -->
+        <!-- } -->
+
+        <!-- .filter-group { -->
+            <!-- display: flex; -->
+            <!-- gap: 15px; -->
+            <!-- align-items: flex-end; -->
+            <!-- flex-wrap: wrap; -->
+        <!-- } -->
+
+        <!-- .filter-item { -->
+            <!-- display: flex; -->
+            <!-- flex-direction: column; -->
+            <!-- gap: 5px; -->
+        <!-- } -->
+
+        <!-- <!-- .filter-item label { --> -->
+            <!-- <!-- font-size: 12px; --> -->
+            <!-- <!-- font-weight: 500; --> -->
+            <!-- <!-- color: #6c757d; --> -->
+        <!-- <!-- } --> -->
+
+        <!-- <!-- .filter-item input, .filter-item select { --> -->
+            <!-- <!-- padding: 8px 12px; --> -->
+            <!-- <!-- border: 1px solid #ddd; --> -->
+            <!-- <!-- border-radius: 6px; --> -->
+            <!-- <!-- font-size: 13px; --> -->
+            <!-- <!-- min-width: 180px; --> -->
+        <!-- <!-- } --> -->
+		<!-- .filter-item label { -->
+			<!-- font-size: 12px; -->
+			<!-- font-weight: 500; -->
+			<!-- font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; -->
+			<!-- color: #6c757d; -->
+		<!-- } -->
+
+		<!-- .filter-item input, .filter-item select { -->
+			<!-- padding: 8px 12px; -->
+			<!-- border: 1px solid #ddd; -->
+			<!-- border-radius: 6px; -->
+			<!-- font-size: 13px; -->
+			<!-- font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; -->
+			<!-- min-width: 180px; -->
+		<!-- } -->
+
+        <!-- .filter-item input:focus, .filter-item select:focus { -->
+            <!-- outline: none; -->
+            <!-- border-color: #2a5298; -->
+            <!-- box-shadow: 0 0 0 2px rgba(42,82,152,0.1); -->
+        <!-- } -->
+
+        <!-- .btn { -->
+            <!-- padding: 8px 16px; -->
+            <!-- border-radius: 6px; -->
+            <!-- font-size: 13px; -->
+            <!-- font-weight: 500; -->
+            <!-- cursor: pointer; -->
+            <!-- transition: all 0.2s; -->
+            <!-- border: none; -->
+        <!-- } -->
+
+        <!-- .btn-primary { -->
+            <!-- background: #2a5298; -->
+            <!-- color: white; -->
+        <!-- } -->
+
+        <!-- .btn-primary:hover { -->
+            <!-- background: #1e3c72; -->
+        <!-- } -->
+
+        <!-- .btn-secondary { -->
+            <!-- background: #6c757d; -->
+            <!-- color: white; -->
+        <!-- } -->
+
+        <!-- .btn-secondary:hover { -->
+            <!-- background: #5a6268; -->
+        <!-- } -->
+
+        <!-- .btn-outline { -->
+            <!-- background: white; -->
+            <!-- border: 1px solid #ddd; -->
+            <!-- color: #495057; -->
+        <!-- } -->
+
+        <!-- .btn-outline:hover { -->
+            <!-- background: #f8f9fa; -->
+        <!-- } -->
+
+        <!-- .table-wrapper { -->
+            <!-- overflow-x: auto; -->
+            <!-- max-height: 600px; -->
+            <!-- overflow-y: auto; -->
+        <!-- } -->
+
+        <!-- <!-- .data-table { --> -->
+            <!-- <!-- width: 100%; --> -->
+            <!-- <!-- border-collapse: collapse; --> -->
+            <!-- <!-- font-size: 12px; --> -->
+        <!-- <!-- } --> -->
+
+        <!-- <!-- .data-table th { --> -->
+            <!-- <!-- background: #f8f9fc; --> -->
+            <!-- <!-- padding: 10px 12px; --> -->
+            <!-- <!-- text-align: left; --> -->
+            <!-- <!-- font-weight: 600; --> -->
+            <!-- <!-- color: #495057; --> -->
+            <!-- <!-- border-bottom: 1px solid #e9ecef; --> -->
+            <!-- <!-- position: sticky; --> -->
+            <!-- <!-- top: 0; --> -->
+            <!-- <!-- z-index: 10; --> -->
+        <!-- <!-- } --> -->
+
+        <!-- <!-- .data-table td { --> -->
+            <!-- <!-- padding: 8px 12px; --> -->
+            <!-- <!-- border-bottom: 1px solid #f1f3f5; --> -->
+            <!-- <!-- vertical-align: top; --> -->
+            <!-- <!-- word-break: break-word; --> -->
+            <!-- <!-- white-space: pre-wrap; --> -->
+        <!-- <!-- } --> -->
+
+        <!-- <!-- .data-table tr:hover { --> -->
+            <!-- <!-- background: #f8f9fc; --> -->
+        <!-- <!-- } --> -->
+		<!-- .data-table { -->
+			<!-- width: 100%; -->
+			<!-- border-collapse: collapse; -->
+			<!-- font-size: 12px; -->
+			<!-- font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; -->
+		<!-- } -->
+
+		<!-- .data-table th { -->
+			<!-- background: #f8f9fc; -->
+			<!-- padding: 10px 12px; -->
+			<!-- text-align: left; -->
+			<!-- font-weight: 600; -->
+			<!-- font-size: 12px; -->
+			<!-- font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; -->
+			<!-- color: #495057; -->
+			<!-- border-bottom: 1px solid #e9ecef; -->
+			<!-- position: sticky; -->
+			<!-- top: 0; -->
+			<!-- z-index: 10; -->
+		<!-- } -->
+
+		<!-- .data-table td { -->
+			<!-- padding: 8px 12px; -->
+			<!-- border-bottom: 1px solid #f1f3f5; -->
+			<!-- vertical-align: top; -->
+			<!-- word-break: break-word; -->
+			<!-- white-space: pre-wrap; -->
+			<!-- font-size: 12px; -->
+			<!-- font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; -->
+		<!-- } -->
+
+		<!-- .data-table td code { -->
+			<!-- font-family: 'Consolas', monospace; -->
+			<!-- font-size: 11px; -->
+			<!-- background: #f8f9fc; -->
+			<!-- padding: 2px 4px; -->
+			<!-- border-radius: 4px; -->
+		<!-- } -->
+
+		<!-- .data-table tr:hover { -->
+			<!-- background: #f8f9fc; -->
+		<!-- } -->
+
+		<!-- .output-cell { -->
+			<!-- max-width: 400px; -->
+			<!-- font-family: 'Consolas', monospace; -->
+			<!-- font-size: 11px; -->
+			<!-- background: #f8f9fc; -->
+			<!-- border-radius: 4px; -->
+		<!-- } -->
+
+		<!-- .error-cell { -->
+			<!-- max-width: 400px; -->
+			<!-- font-family: 'Consolas', monospace; -->
+			<!-- font-size: 11px; -->
+			<!-- color: #dc3545; -->
+			<!-- background: #ffe5e5; -->
+			<!-- border-radius: 4px; -->
+		<!-- } -->
+
+        <!-- .badge { -->
+            <!-- display: inline-block; -->
+            <!-- padding: 2px 8px; -->
+            <!-- border-radius: 20px; -->
+            <!-- font-size: 11px; -->
+            <!-- font-weight: 500; -->
+        <!-- } -->
+
+        <!-- .badge-success { -->
+            <!-- background: #d4edda; -->
+            <!-- color: #155724; -->
+        <!-- } -->
+
+        <!-- .badge-failed { -->
+            <!-- background: #f8d7da; -->
+            <!-- color: #721c24; -->
+        <!-- } -->
+
+        <!-- .badge-warning { -->
+            <!-- background: #fff3cd; -->
+            <!-- color: #856404; -->
+        <!-- } -->
+
+        <!-- .badge-info { -->
+            <!-- background: #d1ecf1; -->
+            <!-- color: #0c5460; -->
+        <!-- } -->
+
+        <!-- .loading { -->
+            <!-- text-align: center; -->
+            <!-- padding: 40px; -->
+            <!-- color: #999; -->
+        <!-- } -->
+
+        <!-- .result-count { -->
+            <!-- font-size: 12px; -->
+            <!-- color: #6c757d; -->
+        <!-- } -->
+
+        <!-- .output-cell { -->
+            <!-- max-width: 400px; -->
+            <!-- font-family: 'Consolas', monospace; -->
+            <!-- font-size: 11px; -->
+            <!-- background: #f8f9fc; -->
+            <!-- border-radius: 4px; -->
+        <!-- } -->
+
+        <!-- .error-cell { -->
+            <!-- max-width: 400px; -->
+            <!-- font-family: 'Consolas', monospace; -->
+            <!-- font-size: 11px; -->
+            <!-- color: #dc3545; -->
+            <!-- background: #ffe5e5; -->
+            <!-- border-radius: 4px; -->
+        <!-- } -->
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+
+		body {
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+			background: #f0f2f6;
+			color: #1a1a2e;
+		}
+
+		.header {
+			background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+			color: white;
+			padding: 20px 30px;
+			box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+		}
+
+		.header h1 {
+			font-size: 24px;
+			margin-bottom: 5px;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+		}
+
+		.header p {
+			font-size: 13px;
+			opacity: 0.85;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+		}
+
+		.nav-bar {
+			background: #fff;
+			padding: 10px 30px;
+			border-bottom: 1px solid #e9ecef;
+			margin-bottom: 20px;
+		}
+
+		.nav-bar a {
+			color: #2a5298;
+			text-decoration: none;
+			margin-right: 20px;
+			font-size: 14px;
+			font-weight: 500;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+		}
+
+		.nav-bar a:hover {
+			text-decoration: underline;
+		}
+
+		.container {
+			max-width: 1600px;
+			margin: 0 auto;
+			padding: 0 30px;
+		}
+
+		.card {
+			background: white;
+			border-radius: 12px;
+			margin-bottom: 20px;
+			box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+			overflow: hidden;
+		}
+
+		.card-header {
+			padding: 15px 20px;
+			background: #f8f9fc;
+			border-bottom: 1px solid #e9ecef;
+			font-weight: 600;
+			font-size: 16px;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.card-body {
+			padding: 20px;
+		}
+
+		.filter-group {
+			display: flex;
+			gap: 15px;
+			align-items: flex-end;
+			flex-wrap: wrap;
+		}
+
+		.filter-item {
+			display: flex;
+			flex-direction: column;
+			gap: 5px;
+		}
+
+		.filter-item label {
+			font-size: 12px;
+			font-weight: 500;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+			color: #6c757d;
+		}
+
+		.filter-item input, .filter-item select {
+			padding: 8px 12px;
+			border: 1px solid #ddd;
+			border-radius: 6px;
+			font-size: 13px;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+			min-width: 180px;
+		}
+
+		.filter-item input:focus, .filter-item select:focus {
+			outline: none;
+			border-color: #2a5298;
+			box-shadow: 0 0 0 2px rgba(42,82,152,0.1);
+		}
+
+		.btn {
+			padding: 8px 16px;
+			border-radius: 6px;
+			font-size: 13px;
+			font-weight: 500;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+			cursor: pointer;
+			transition: all 0.2s;
+			border: none;
+		}
+
+		.btn-primary {
+			background: #2a5298;
+			color: white;
+		}
+
+		.btn-primary:hover {
+			background: #1e3c72;
+		}
+
+		.btn-secondary {
+			background: #6c757d;
+			color: white;
+		}
+
+		.btn-secondary:hover {
+			background: #5a6268;
+		}
+
+		.btn-outline {
+			background: white;
+			border: 1px solid #ddd;
+			color: #495057;
+		}
+
+		.btn-outline:hover {
+			background: #f8f9fa;
+		}
+
+		.table-wrapper {
+			overflow-x: auto;
+			max-height: 600px;
+			overflow-y: auto;
+		}
+
+		.data-table {
+			width: 100%;
+			border-collapse: collapse;
+			font-size: 12px;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+		}
+
+		.data-table th {
+			background: #f8f9fc;
+			padding: 10px 12px;
+			text-align: left;
+			font-weight: 600;
+			font-size: 12px;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+			color: #495057;
+			border-bottom: 1px solid #e9ecef;
+			position: sticky;
+			top: 0;
+			z-index: 10;
+		}
+
+		.data-table td {
+			padding: 8px 12px;
+			border-bottom: 1px solid #f1f3f5;
+			vertical-align: top;
+			word-break: break-word;
+			white-space: pre-wrap;
+			font-size: 12px;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+		}
+
+		.data-table td code {
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+			font-size: 12px;
+			background: #f8f9fc;
+			padding: 2px 4px;
+			border-radius: 4px;
+		}
+
+		.data-table tr:hover {
+			background: #f8f9fc;
+		}
+
+		.badge {
+			display: inline-block;
+			padding: 2px 8px;
+			border-radius: 20px;
+			font-size: 11px;
+			font-weight: 500;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+		}
+
+		.badge-success {
+			background: #d4edda;
+			color: #155724;
+		}
+
+		.badge-failed {
+			background: #f8d7da;
+			color: #721c24;
+		}
+
+		.badge-warning {
+			background: #fff3cd;
+			color: #856404;
+		}
+
+		.badge-info {
+			background: #d1ecf1;
+			color: #0c5460;
+		}
+
+		.loading {
+			text-align: center;
+			padding: 40px;
+			color: #999;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+		}
+
+		.result-count {
+			font-size: 12px;
+			color: #6c757d;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+		}
+
+		.output-cell {
+			max-width: 400px;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+			font-size: 12px;
+			background: #f8f9fc;
+			border-radius: 4px;
+		}
+
+		.error-cell {
+			max-width: 400px;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+			font-size: 12px;
+			color: #dc3545;
+			background: #ffe5e5;
+			border-radius: 4px;
+		}
+
+		pre {
+			margin: 0;
+			white-space: pre-wrap;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+			font-size: 12px;
+		}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 VCOMM 实例查询</h1>
+        <p>查询 VCOMM 表数据 | 支持 Output 字段模糊搜索</p>
+    </div>
+
+    <div class="nav-bar">
+        <a href="/">← 返回日志下载工具</a>
+    </div>
+
+    <div class="container">
+        <!-- 查询条件 -->
+        <div class="card">
+            <div class="card-header">
+                <span>🔍 查询条件</span>
+            </div>
+            <div class="card-body">
+                <div class="filter-group">
+                    <div class="filter-item">
+                        <label>Output 模糊搜索</label>
+                        <input type="text" id="searchKeyword" placeholder="输入关键字..." style="width: 300px;">
+                    </div>
+                    <div class="filter-item">
+                        <label>组件筛选</label>
+                        <select id="filterComponent">
+                            <option value="">全部</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label>状态筛选</label>
+                        <select id="filterStatus">
+                            <option value="">全部</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <button class="btn btn-primary" onclick="searchVCOMM()">🔍 查询</button>
+                        <button class="btn btn-outline" onclick="resetSearch()">重置</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 查询结果 -->
+        <div class="card">
+            <div class="card-header">
+                <span>📋 查询结果</span>
+                <span class="result-count" id="resultCount">共 0 条记录</span>
+            </div>
+            <div class="card-body" style="padding:0;">
+                <div class="table-wrapper">
+                    <table class="data-table" id="resultTable">
+                        <thead>
+                            <tr>
+                                <th>IP</th>
+                                <th>项目/环境/应用</th>
+                                <th>组件</th>
+                                <th>状态</th>
+                                <th>Output</th>
+                                <th>Error</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultBody">
+                            <tr><td colspan="6" class="loading">请输入关键字后查询</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 加载筛选选项
+        async function loadFilterOptions() {
+            try {
+                const resp = await fetch('/api/vcomm/filter_options');
+                const data = await resp.json();
+                
+                if (data.success) {
+                    const componentSelect = document.getElementById('filterComponent');
+                    const statusSelect = document.getElementById('filterStatus');
+                    
+                    componentSelect.innerHTML = '<option value="">全部</option>' + 
+                        data.components.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+                    
+                    statusSelect.innerHTML = '<option value="">全部</option>' + 
+                        data.statuses.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+                }
+            } catch (err) {
+                console.error('加载筛选选项失败:', err);
+            }
+        }
+
+        // 查询 VCOMM 数据
+        async function searchVCOMM() {
+            const keyword = document.getElementById('searchKeyword').value.trim();
+            const filterComponent = document.getElementById('filterComponent').value;
+            const filterStatus = document.getElementById('filterStatus').value;
+            
+            if (!keyword) {
+                alert('请输入搜索关键字');
+                return;
+            }
+            
+            const tbody = document.getElementById('resultBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="loading">查询中...</td></tr>';
+            
+            try {
+                const resp = await fetch('/api/vcomm/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ keyword: keyword })
+                });
+                const result = await resp.json();
+                
+                if (result.success) {
+                    let data = result.data;
+                    
+                    // 前端二次筛选（组件和状态）
+                    if (filterComponent) {
+                        data = data.filter(item => item.Component === filterComponent);
+                    }
+                    if (filterStatus) {
+                        data = data.filter(item => item.Status === filterStatus);
+                    }
+                    
+                    displayResults(data);
+                    document.getElementById('resultCount').innerText = `共 ${data.length} 条记录`;
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="6" class="loading">查询失败: ${escapeHtml(result.error)}</td></tr>`;
+                }
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="6" class="loading">请求失败: ${escapeHtml(err.message)}</td></tr>`;
+            }
+        }
+
+        // 显示结果
+        function displayResults(data) {
+            const tbody = document.getElementById('resultBody');
+            
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="loading">未找到匹配记录</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = data.map(item => `
+                <tr>
+                    <td><code>${escapeHtml(item.IP || '-')}</code></td>
+                    <td>${escapeHtml(item['Project/Environment/Application'] || '-')}</td>
+                    <td>${escapeHtml(item.Component || '-')}</td>
+                    <td>${getStatusBadge(item.Status)}</td>
+                    <td class="output-cell"><pre style="margin:0; white-space:pre-wrap; font-family:monospace; font-size:11px;">${escapeHtml(item.Output || '-')}</pre></td>
+                    <td class="error-cell"><pre style="margin:0; white-space:pre-wrap; font-family:monospace; font-size:11px; color:#dc3545;">${escapeHtml(item.Error || '-')}</pre></td>
+                </table>
+            `).join('');
+        }
+
+        // 获取状态徽章
+        function getStatusBadge(status) {
+            if (!status) return '-';
+            const statusLower = status.toLowerCase();
+            if (statusLower.includes('success') || statusLower.includes('成功')) {
+                return `<span class="badge badge-success">${escapeHtml(status)}</span>`;
+            } else if (statusLower.includes('fail') || statusLower.includes('失败') || statusLower.includes('error')) {
+                return `<span class="badge badge-failed">${escapeHtml(status)}</span>`;
+            } else if (statusLower.includes('warn') || statusLower.includes('警告')) {
+                return `<span class="badge badge-warning">${escapeHtml(status)}</span>`;
+            } else {
+                return `<span class="badge badge-info">${escapeHtml(status)}</span>`;
+            }
+        }
+
+        // 重置查询
+        function resetSearch() {
+            document.getElementById('searchKeyword').value = '';
+            document.getElementById('filterComponent').value = '';
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('resultBody').innerHTML = '<tr><td colspan="6" class="loading">请输入关键字后查询</td></tr>';
+            document.getElementById('resultCount').innerText = '共 0 条记录';
+        }
+
+        // 回车键查询
+        document.getElementById('searchKeyword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchVCOMM();
+            }
+        });
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // 初始化
+        loadFilterOptions();
+    </script>
+</body>
+</html>
